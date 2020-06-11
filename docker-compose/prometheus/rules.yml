@@ -1,0 +1,41 @@
+groups:
+ - name: instanceDownAlert
+   rules:
+   - alert: InstanceDown
+     expr: up == 0
+     for: 1m
+     labels:
+       serverity: "critical"
+     annotations:
+       summary: "Endpoint {{ $labels.instance }} down"
+       description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+
+# Absent alerting for jobs
+# - name: cronMissingAlert
+#   rules:
+#   - alert: cronMissing
+#     expr: absent(up{job="cron"})
+#     for: 10s
+
+
+# # Absent alerting for Scraped Metrics
+#  - name: cronMissingAlert2
+#    rules:
+#    - alert: MyJobMissingMyMetric
+#      expr: up{job="cron"} == 1 unless my_metric
+#      for: 6s
+
+
+# Burası kapatıldı
+#  - name: node.rules
+#    rules:
+#    - alert: InstanceDown
+#      expr: up{job="node_exporter_labs"} == 0
+#      for: 8s
+
+# # my custome alert for cron
+#  - name: cronStoped
+#    rules:
+#    - alert: processDown
+#      expr: absent(cpu_usage{process="/usr/sbin/cron"} == 0)
+#      for: 10s
