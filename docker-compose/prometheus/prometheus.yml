@@ -23,7 +23,7 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
       - targets:
-        - 37.139.6.247:9100
+        - serverbilgisi:9100
   - job_name: 'alertmanager'
     scrape_interval: 5s
     static_configs:
