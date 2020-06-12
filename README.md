@@ -4,6 +4,7 @@ Bu dokümanda; Server makinelerinin tüm bilgilerini monitör etmek, çalışma 
 Prometheus, Alertmanager ve Grafana bir arada çalışan sistemler bütünüdür.
 
 **Grafana;**  alınan tüm bilgileri görselleştirilir. İstenilen şekle sokarak, takip edilmesini ve okunmasını daha kolay hale getirir.
+
 ![GRAFANA1](https://github.com/onurpolaatt/ServerMonitoringConfiguration/blob/master/pictures/1.png)
 
 Tablo şeklinde gördüğümüz tüm bilgiler, **node_exporter** tarafından elde ettiğimiz bilgilerdir. Node_exporter kurulu olduğu sistemi dinleyerek tüm bilgileri dışarıya paylaşan bir sistemdir. Prometheus ile doğrudan çalışmaktadır. Bir port ile bu bilgileri dışarıya aktarır.
