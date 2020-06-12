@@ -115,3 +115,122 @@ services:
        - ./grafana/provisioning:/etc/grafana/provisioning
 
 ```
+
+Compose dosyamızın çalıştığı klasörün içerisinde iki farklı klasör daha bulunmaktadır. Birincisi **prometheus** isimli klasör ve içerisinde  prometheus.yml ve rules.yml isimli dosyalar barındırır. Kural tanımlarını ve prometheusun hedeflerini konfigüre ettiğimiz dosyalarımızdır.
+- prometheus.yml
+```
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'codelab-monitor'
+    
+rule_files:
+   - rules.yml
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - localhost:9090
+  - job_name: 'node_exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - SERVERIP:9100
+  - job_name: 'alertmanager'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - alertmanager:9093
+```
+- rules.yml
+
+```
+groups:
+ - name: instanceDownAlert
+   rules:
+   - alert: InstanceDown
+     expr: up == 0
+     for: 1m
+     labels:
+       serverity: "critical"
+     annotations:
+       summary: "Endpoint {{ $labels.instance }} down"
+       description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+```
+Diğer klasörümüzün ismi ise **alertmanager**. Bu klasörün içerisinde de config.yml isimli dosyamız mevcuttur. İçerisinde alert tetiklendiği durumda ne aksiyon alması gerektiğinin konfigürasyonu bulunmaktadır.
+
+```
+global:
+  slack_api_url: 'https://hooks.slack.com/services/*****'
+route:
+  group_by: ['instance', 'severity']
+  group_wait: 30s
+  group_interval: 30s
+  repeat_interval: 30s
+  routes:
+  - match:
+      alertname: InstanceDown
+  receiver: 'alert-team'
+receivers:
+- name: 'alert-team'
+  slack_configs:
+  - channel: '#builds'
+    icon_url: https://avatars3.githubusercontent.com/u/3380462
+    title: |-
+     [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+     {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+       {{" "}}(
+       {{- with .CommonLabels.Remove .GroupLabels.Names }}
+         {{- range $index, $label := .SortedPairs -}}
+           {{ if $index }}, {{ end }}
+           {{- $label.Name }}="{{ $label.Value -}}"
+         {{- end }}
+       {{- end -}}
+       )
+     {{- end }}
+    text: >-
+     {{ range .Alerts -}}
+     *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+
+     *Description:* {{ .Annotations.description }}
+
+     *Details:*
+       {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+       {{ end }}
+     {{ end }}
+```
+**NOT:**  “prometheus.yml” isimli dosyamızda alerting kısmında belirtilen target alanının diğerlerinden farklı olmasının sebebi; Farklı docker containerlar içerisinde bulundukları için, birbirleri ile konuşmalarını sağlamak ve ilgili portu düzgün biçimde belirtmektir. ( diğerleri localhost:**** şeklinde tanımlanmışken alertmanager => alertmanager:9093 şeklinde tanımlanır.)
+
+---
+
+# NODE_EXPORTER SERVİS HALİNE GETİRME:
+node_exporter server makinesinde çalışırken, kendiliğinden kapanma durumu yaşanabiliyor. Bunun önüne geçmek için servis haline getirmemiz gerekecektir.
+* Yüklemeyi yaptığımız klasörden node_exporter kopyalanır: “cp /node_exporter/node_exporter-0.18.1.linux-amd64/node_exporter /usr/local/bin/node_exporter”
+* systemd altına bir servis dosyası oluşturulur: “sudo nano /etc/systemd/system/node-exporter.service”
+* Oluşturulan servis dosyasının içerisine ise aşağıdaki bilgiler girilir;
+
+```
+[Unit]
+Description=Prometheus Node Exporter Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+```
+* Her şey hazır. Son olarak “sudo service node-exporter start” komutunu çalıştırarak başlatabilirsiniz. “sudo service node-exporter status” komutu ile de durumunu inceleyebilirsiniz.
+
+Hepinize İyi Çalışmalar.
+W
