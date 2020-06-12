@@ -233,4 +233,5 @@ WantedBy=multi-user.target
 * Her şey hazır. Son olarak “sudo service node-exporter start” komutunu çalıştırarak başlatabilirsiniz. “sudo service node-exporter status” komutu ile de durumunu inceleyebilirsiniz.
 
 Hepinize İyi Çalışmalar.
-W
+
+(W)
