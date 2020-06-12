@@ -66,7 +66,7 @@ NOT: Eğer node_exporter çalışmayı durdurursa, server makinamızda oluşturd
 Bu kurulumları gerçekleştirmek için docker-compose yapısı kullanıldı;
 Kullanılan Yapının bir örneği aşağıda eklidir;
 
-'''
+```
 version: '3.1'
 
 volumes:
@@ -114,4 +114,4 @@ services:
        - ./grafana/dashboards:/var/lib/grafana/dashboards
        - ./grafana/provisioning:/etc/grafana/provisioning
 
-'''
+```
